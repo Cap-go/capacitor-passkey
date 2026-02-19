@@ -18,6 +18,14 @@ bun run init-plugin downloader CapacitorDownloader app.capgo.downloader Cap-go
 
 This command renames JS/iOS/Android identifiers, package metadata, and native file paths.
 
+Immediately after running it in a generated plugin copy:
+
+1. Change git remote away from the template before any push:
+   - `git remote set-url origin git@github.com:Cap-go/capacitor-<plugin-slug>.git`
+2. Remove bootstrap-only init script from the generated copy:
+   - delete `scripts/init-plugin.sh`
+   - remove `"init-plugin"` from `package.json` scripts
+
 ## Public Release Requirements (Mandatory)
 
 When shipping a new plugin from this template, the agent must perform all of the following:
