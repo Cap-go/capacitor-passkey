@@ -11,6 +11,7 @@ on:
 jobs:
   guard_swiftpm_version:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@v6
@@ -23,6 +24,7 @@ jobs:
           fi
   build_android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@v6
@@ -42,6 +44,7 @@ jobs:
         run: bun run verify:android
   build_ios:
     runs-on: macOS-latest
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@v6
@@ -56,6 +59,7 @@ jobs:
         run: bun run verify:ios
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     name: 'Build code and test'
     steps:
       - name: Check out
