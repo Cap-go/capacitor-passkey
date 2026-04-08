@@ -1,7 +1,7 @@
 {
-  "name": "plugin-template-example",
+  "name": "passkey-shim-example",
   "version": "1.0.0",
-  "description": "Example Capacitor app for @capgo/capacitor-plugin-template",
+  "description": "Example app for the @capgo/capacitor-passkey WebAuthn shim",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -12,7 +12,7 @@
     "@capacitor/core": "^8.0.0",
     "@capacitor/android": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
-    "@capgo/capacitor-plugin-template": "file:.."
+    "@capgo/capacitor-passkey": "file:.."
   },
   "devDependencies": {
     "@capacitor/cli": "^8.0.0",

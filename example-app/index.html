@@ -3,23 +3,71 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@capgo/capacitor-plugin-template Example</title>
+    <title>Capgo Passkey Demo</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main class="container">
-      <h1>@capgo/capacitor-plugin-template</h1>
-      <p class="lead">Quickly validate the template plugin wiring.</p>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Capgo Passkey</p>
+        <h1>Run passkeys in Capacitor with the same WebAuthn calls you already use on the web.</h1>
+        <p class="lede">
+          Install the shim, set the relying-party origin, then try `navigator.credentials.create()` and
+          `navigator.credentials.get()` against the native bridge.
+        </p>
+      </section>
 
-      <label for="echo-value">Echo value</label>
-      <input id="echo-value" type="text" value="Hello from example app" />
+      <section class="panel form-panel">
+        <div class="grid">
+          <label>
+            <span>Origin</span>
+            <input id="origin" type="url" value="https://signin.example.com" />
+          </label>
+          <label>
+            <span>RP ID</span>
+            <input id="rp-id" type="text" value="signin.example.com" />
+          </label>
+          <label>
+            <span>RP Name</span>
+            <input id="rp-name" type="text" value="Example Inc" />
+          </label>
+          <label>
+            <span>User Name</span>
+            <input id="user-name" type="text" value="ada@example.com" />
+          </label>
+          <label>
+            <span>Display Name</span>
+            <input id="display-name" type="text" value="Ada Lovelace" />
+          </label>
+          <label>
+            <span>Allow Credential ID</span>
+            <input id="allow-credential-id" type="text" placeholder="Filled after registration" />
+          </label>
+        </div>
+      </section>
 
-      <div class="actions">
-        <button id="run-echo">Run echo</button>
-        <button id="get-version">Get plugin version</button>
-      </div>
+      <section class="panel action-panel">
+        <button id="install-shim" class="accent">Install shim</button>
+        <button id="check-support">Check support</button>
+        <button id="register-passkey">Create passkey</button>
+        <button id="authenticate-passkey">Get passkey</button>
+        <button id="plugin-version">Plugin version</button>
+      </section>
 
-      <pre id="plugin-output">Press a button to run an action.</pre>
+      <section class="panel note-panel">
+        <p>
+          Real passkey flows still need Associated Domains / Digital Asset Links and a backend-issued challenge. This
+          demo generates a local challenge so you can validate the front-end wiring.
+        </p>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="output-header">
+          <h2>Output</h2>
+          <span id="status-pill">Idle</span>
+        </div>
+        <pre id="plugin-output">Press “Install shim” before using the WebAuthn buttons.</pre>
+      </section>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>

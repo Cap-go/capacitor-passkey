@@ -1,7 +1,7 @@
 {
-  "name": "@capgo/capacitor-plugin-template",
+  "name": "@capgo/capacitor-passkey",
   "version": "8.0.0",
-  "description": "Capgo Capacitor plugin template for quickly bootstrapping new plugins.",
+  "description": "Capacitor passkey plugin with a WebAuthn-style shim for Capacitor apps.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -13,29 +13,28 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "CapgoCapacitorPluginTemplate.podspec"
+    "CapgoCapacitorPasskey.podspec"
   ],
   "author": "Martin Donadieu <martin@capgo.app>",
   "license": "MPL-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Cap-go/capacitor-plugin-template.git"
+    "url": "git+https://github.com/Cap-go/capacitor-passkey.git"
   },
   "bugs": {
-    "url": "https://github.com/Cap-go/capacitor-plugin-template/issues"
+    "url": "https://github.com/Cap-go/capacitor-passkey/issues"
   },
-  "homepage": "https://github.com/Cap-go/capacitor-plugin-template",
+  "homepage": "https://github.com/Cap-go/capacitor-passkey",
   "keywords": [
-    "__AI_KEYWORD_PRIMARY__",
-    "__AI_KEYWORD_SECONDARY__",
-    "__AI_KEYWORD_USE_CASE__",
-    "__AI_KEYWORD_PLATFORM__",
-    "__AI_KEYWORD_VENDOR__"
+    "capacitor",
+    "passkey",
+    "webauthn",
+    "credential-manager",
+    "authentication"
   ],
   "scripts": {
-    "init-plugin": "./scripts/init-plugin.sh",
     "verify": "bun run verify:ios && bun run verify:android && bun run verify:web",
-    "verify:ios": "xcodebuild -scheme CapgoCapacitorPluginTemplate -destination generic/platform=iOS",
+    "verify:ios": "xcodebuild -scheme CapgoCapacitorPasskey -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:web": "bun run build",
     "lint": "bun run eslint && bun run prettier -- --check && bun run swiftlint -- lint",
@@ -43,7 +42,7 @@
     "eslint": "eslint . --ext .ts",
     "prettier": "prettier-pretty-check \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",
     "swiftlint": "node-swiftlint",
-    "docgen": "docgen --api PluginTemplatePlugin --output-readme README.md --output-json dist/docs.json",
+    "docgen": "docgen --api CapacitorPasskeyPlugin --output-readme README.md --output-json dist/docs.json",
     "build": "bun run clean && bun run docgen && tsc && rollup -c rollup.config.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",

@@ -1,6 +1,6 @@
 {
-  "appId": "app.capgo.plugintemplate.example",
-  "appName": "Plugin Template Example",
+  "appId": "app.capgo.passkey.example",
+  "appName": "Capgo Passkey Demo",
   "webDir": "dist",
   "plugins": {
     "SplashScreen": {

@@ -2,27 +2,27 @@
 import PackageDescription
 
 let package = Package(
-    name: "CapgoCapacitorPluginTemplate",
+    name: "CapgoCapacitorPasskey",
     platforms: [.iOS(.v15)],
     products: [
         .library(
-            name: "CapgoCapacitorPluginTemplate",
-            targets: ["PluginTemplatePlugin"])
+            name: "CapgoCapacitorPasskey",
+            targets: ["CapacitorPasskeyPlugin"])
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0")
     ],
     targets: [
         .target(
-            name: "PluginTemplatePlugin",
+            name: "CapacitorPasskeyPlugin",
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
-            path: "ios/Sources/PluginTemplatePlugin"),
+            path: "ios/Sources/CapacitorPasskeyPlugin"),
         .testTarget(
-            name: "PluginTemplatePluginTests",
-            dependencies: ["PluginTemplatePlugin"],
-            path: "ios/Tests/PluginTemplatePluginTests")
+            name: "CapacitorPasskeyPluginTests",
+            dependencies: ["CapacitorPasskeyPlugin"],
+            path: "ios/Tests/CapacitorPasskeyPluginTests")
     ]
 )
