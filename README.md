@@ -28,7 +28,7 @@ What it does not do:
 
 - It does not generate backend challenges for you.
 - It does not replace Associated Domains or Digital Asset Links setup.
-- It does not make Android native passkeys look like a web origin on the server side.
+- It does not make Android native passkeys report your website's HTTPS origin to the server. On Android, normal apps use the app origin (`android:apk-key-hash:...`).
 
 ## Documentation
 
@@ -205,6 +205,7 @@ This plugin preserves the front-end WebAuthn API shape, but native platforms are
 
 - iOS 17.4+ can encode the HTTPS origin you pass to the shim or direct API.
 - Android Credential Manager does **not** act like a privileged browser app. The native response origin is tied to the Android app signature (`android:apk-key-hash:...`), not automatically to your website.
+- With Digital Asset Links configured, Android can still use the same relying party and passkeys as your website. The part that differs is the literal `clientDataJSON.origin` string.
 - If your server strictly validates `clientDataJSON.origin`, allow the Android app origin alongside your web origin.
 - Your backend still needs the normal WebAuthn challenge lifecycle and signature verification.
 
