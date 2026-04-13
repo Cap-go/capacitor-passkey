@@ -12,8 +12,8 @@
         <p class="eyebrow">Capgo Passkey</p>
         <h1>Run passkeys in Capacitor with the same WebAuthn calls you already use on the web.</h1>
         <p class="lede">
-          Install the shim, set the relying-party origin, then try `navigator.credentials.create()` and
-          `navigator.credentials.get()` against the native bridge.
+          The app imports `@capgo/capacitor-passkey/auto`, reads `capacitor.config.*`, and keeps the browser
+          `navigator.credentials.create()` / `get()` calls intact.
         </p>
       </section>
 
@@ -47,7 +47,7 @@
       </section>
 
       <section class="panel action-panel">
-        <button id="install-shim" class="accent">Install shim</button>
+        <button id="install-shim" class="accent">Reinstall auto shim</button>
         <button id="check-support">Check support</button>
         <button id="register-passkey">Create passkey</button>
         <button id="authenticate-passkey">Get passkey</button>
@@ -66,7 +66,7 @@
           <h2>Output</h2>
           <span id="status-pill">Idle</span>
         </div>
-        <pre id="plugin-output">Press “Install shim” before using the WebAuthn buttons.</pre>
+        <pre id="plugin-output">Loading runtime config and auto-shim state...</pre>
       </section>
     </main>
     <script type="module" src="/src/main.js"></script>

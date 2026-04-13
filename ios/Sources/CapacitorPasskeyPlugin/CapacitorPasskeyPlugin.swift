@@ -23,11 +23,20 @@ private struct PasskeyAuthenticatorSelection: Decodable {
 
 private struct PasskeyRegistrationRequestJSON: Decodable {
     let challenge: String
-    let rp: PasskeyRelyingParty
+    let relyingParty: PasskeyRelyingParty
     let user: PasskeyUserEntity
     let excludeCredentials: [PasskeyCredentialDescriptor]?
     let authenticatorSelection: PasskeyAuthenticatorSelection?
     let attestation: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case attestation
+        case authenticatorSelection
+        case challenge
+        case excludeCredentials
+        case relyingParty = "rp"
+        case user
+    }
 }
 
 private struct PasskeyAssertionRequestJSON: Decodable {
@@ -42,13 +51,83 @@ private enum PasskeyOperation {
     case assertion
 }
 
+private func userVerificationPreference(_ value: String?) -> ASAuthorizationPublicKeyCredentialUserVerificationPreference {
+    switch value {
+    case "required":
+        return .required
+    case "discouraged":
+        return .discouraged
+    default:
+        return .preferred
+    }
+}
+
+private func attestationPreference(_ value: String?) -> ASAuthorizationPublicKeyCredentialAttestationKind {
+    switch value {
+    case "direct":
+        return .direct
+    case "enterprise":
+        return .enterprise
+    case "indirect":
+        return .indirect
+    default:
+        return .none
+    }
+}
+
+private func normalizedOrigin(_ explicitOrigin: String?, rpId: String?) -> String? {
+    if let explicitOrigin, !explicitOrigin.isEmpty {
+        return explicitOrigin
+    }
+
+    if let rpId, !rpId.isEmpty {
+        return "https://\(rpId)"
+    }
+
+    return nil
+}
+
+private func derivedRPID(from origin: String?) -> String? {
+    guard let origin, let host = URL(string: origin)?.host, !host.isEmpty else {
+        return nil
+    }
+
+    return host
+}
+
+private func normalizeConfiguredDomains(_ values: [String], origin: String?) -> [String] {
+    var domains = values.compactMap { normalizeDomain($0) }
+
+    if let originDomain = normalizeDomain(origin), !domains.contains(originDomain) {
+        domains.append(originDomain)
+    }
+
+    return domains
+}
+
+private func normalizeDomain(_ value: String?) -> String? {
+    guard let value, !value.isEmpty else {
+        return nil
+    }
+
+    if let host = URL(string: value)?.host, !host.isEmpty {
+        return host
+    }
+
+    return value
+}
+
 @objc(CapacitorPasskeyPlugin)
-public class CapacitorPasskeyPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+public class CapacitorPasskeyPlugin: CAPPlugin,
+    CAPBridgedPlugin,
+    ASAuthorizationControllerDelegate,
+    ASAuthorizationControllerPresentationContextProviding {
     public let identifier = "CapacitorPasskeyPlugin"
     public let jsName = "CapacitorPasskey"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "createCredential", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCredential", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getConfiguration", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "isSupported", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
@@ -66,7 +145,7 @@ public class CapacitorPasskeyPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizatio
         do {
             let requestJson = try requestJSON(from: call)
             let registrationRequest = try JSONDecoder().decode(PasskeyRegistrationRequestJSON.self, from: requestJson)
-            let origin = normalizedOrigin(call.getString("origin"), rpId: registrationRequest.rp.id)
+            let origin = normalizedOrigin(call.getString("origin"), rpId: registrationRequest.relyingParty.id)
             let authorizationRequest = try buildRegistrationRequest(from: registrationRequest, origin: origin)
             performAuthorization(call: call, request: authorizationRequest, operation: .registration)
         } catch let error as PasskeyPluginError {
@@ -99,6 +178,19 @@ public class CapacitorPasskeyPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizatio
         call.resolve([
             "available": true,
             "conditionalMediation": false,
+            "platform": "ios"
+        ])
+    }
+
+    @objc func getConfiguration(_ call: CAPPluginCall) {
+        let config = getConfig()
+        let origin = normalizedOrigin(config.getString("origin"), rpId: nil)
+        let configuredDomains = (config.getArray("domains") as? [String]) ?? []
+
+        call.resolve([
+            "autoShim": config.getBoolean("autoShim", true),
+            "domains": normalizeConfiguredDomains(configuredDomains, origin: origin),
+            "origin": origin ?? NSNull(),
             "platform": "ios"
         ])
     }
@@ -179,7 +271,7 @@ public class CapacitorPasskeyPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizatio
         from request: PasskeyRegistrationRequestJSON,
         origin: String?
     ) throws -> ASAuthorizationPlatformPublicKeyCredentialRegistrationRequest {
-        guard let rpId = request.rp.id ?? derivedRPID(from: origin) else {
+        guard let rpId = request.relyingParty.id ?? derivedRPID(from: origin) else {
             throw PasskeyPluginError(name: "DataError", message: "A relying party id or HTTPS origin is required.")
         }
 
@@ -278,50 +370,6 @@ public class CapacitorPasskeyPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizatio
             "clientExtensionResults": JSObject(),
             "response": response
         ]
-    }
-
-    private func userVerificationPreference(_ value: String?) -> ASAuthorizationPublicKeyCredentialUserVerificationPreference {
-        switch value {
-        case "required":
-            return .required
-        case "discouraged":
-            return .discouraged
-        default:
-            return .preferred
-        }
-    }
-
-    private func attestationPreference(_ value: String?) -> ASAuthorizationPublicKeyCredentialAttestationKind {
-        switch value {
-        case "direct":
-            return .direct
-        case "enterprise":
-            return .enterprise
-        case "indirect":
-            return .indirect
-        default:
-            return .none
-        }
-    }
-
-    private func normalizedOrigin(_ explicitOrigin: String?, rpId: String?) -> String? {
-        if let explicitOrigin, !explicitOrigin.isEmpty {
-            return explicitOrigin
-        }
-
-        if let rpId, !rpId.isEmpty {
-            return "https://\(rpId)"
-        }
-
-        return nil
-    }
-
-    private func derivedRPID(from origin: String?) -> String? {
-        guard let origin, let host = URL(string: origin)?.host, !host.isEmpty else {
-            return nil
-        }
-
-        return host
     }
 
     private func clearPendingRequest() {

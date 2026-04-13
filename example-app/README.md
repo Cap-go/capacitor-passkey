@@ -2,7 +2,8 @@
 
 This Vite project links directly to the local plugin source and demonstrates the intended flow:
 
-- install the shim
+- configure the plugin in `capacitor.config.json`
+- import `@capgo/capacitor-passkey/auto`
 - call `navigator.credentials.create()`
 - call `navigator.credentials.get()`
 - inspect the JSON result coming back from native
@@ -22,8 +23,10 @@ bunx cap add android
 bunx cap sync
 ```
 
-Before a real native passkey flow succeeds, configure:
+During `bunx cap sync`, the plugin hook updates the generated native projects for the configured passkey domain.
 
-- iOS `Associated Domains` with `webcredentials:<your-domain>`
-- Android `assetlinks.json` plus `asset_statements`
+Before a real native passkey flow succeeds, you still need:
+
+- `apple-app-site-association` on your iOS relying-party domain
+- `assetlinks.json` on your Android relying-party domain
 - a backend challenge for registration and authentication

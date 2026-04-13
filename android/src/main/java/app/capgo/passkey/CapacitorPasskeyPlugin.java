@@ -22,8 +22,13 @@ import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentia
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginConfig;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -164,6 +169,18 @@ public class CapacitorPasskeyPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getConfiguration(final PluginCall call) {
+        PluginConfig config = getConfig();
+        JSObject result = new JSObject();
+        String origin = normalizeOrigin(config.getString("origin"));
+        result.put("autoShim", config.getBoolean("autoShim", true));
+        result.put("domains", normalizeDomains(config.getArray("domains"), origin));
+        result.put("origin", origin);
+        result.put("platform", "android");
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void isSupported(final PluginCall call) {
         JSObject result = new JSObject();
         result.put("available", credentialManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P);
@@ -240,5 +257,43 @@ public class CapacitorPasskeyPlugin extends Plugin {
         JSObject data = new JSObject();
         data.put("name", name);
         call.reject(message, name, exception, data);
+    }
+
+    private ArrayList<String> normalizeDomains(String[] configuredDomains, String origin) {
+        LinkedHashSet<String> domains = new LinkedHashSet<>();
+        if (configuredDomains != null) {
+            for (String value : configuredDomains) {
+                String normalized = normalizeDomain(value);
+                if (normalized != null) {
+                    domains.add(normalized);
+                }
+            }
+        }
+
+        String originDomain = normalizeDomain(origin);
+        if (originDomain != null) {
+            domains.add(originDomain);
+        }
+
+        return new ArrayList<>(domains);
+    }
+
+    private String normalizeOrigin(String value) {
+        return value == null || value.isBlank() ? null : value;
+    }
+
+    private String normalizeDomain(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            URI uri = new URI(value);
+            if (uri.getHost() != null && !uri.getHost().isBlank()) {
+                return uri.getHost();
+            }
+        } catch (URISyntaxException ignored) {}
+
+        return value;
     }
 }

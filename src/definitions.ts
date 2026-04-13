@@ -56,6 +56,42 @@ export interface ShimWebAuthnOptions {
 }
 
 /**
+ * Runtime configuration loaded from the host app's Capacitor config.
+ *
+ * This is the shape returned by `getConfiguration()`.
+ *
+ * @since 1.1.0
+ */
+export interface PasskeyRuntimeConfiguration {
+  /**
+   * Whether the `/auto` entrypoint should install the shim automatically.
+   *
+   * Defaults to `true`.
+   */
+  autoShim: boolean;
+
+  /**
+   * Optional HTTPS origin used by the auto-shim.
+   *
+   * On iOS 17.4+ this origin is encoded into `clientDataJSON`.
+   */
+  origin?: string;
+
+  /**
+   * Domains associated with the app for passkey usage.
+   *
+   * These come from `domains` in Capacitor config plus the hostname derived
+   * from `origin` when available.
+   */
+  domains: string[];
+
+  /**
+   * Current runtime platform.
+   */
+  platform: 'ios' | 'android' | 'web';
+}
+
+/**
  * JSON-safe representation of a public key credential descriptor.
  *
  * Binary identifiers must be base64url encoded.
@@ -484,8 +520,9 @@ export interface PasskeySupportResult {
 /**
  * Capacitor Passkey plugin.
  *
- * Use `shimWebAuthn()` to keep existing `navigator.credentials.create/get`
- * code working inside a Capacitor app.
+ * Use `autoShimWebAuthn()` or import `@capgo/capacitor-passkey/auto`
+ * to keep existing `navigator.credentials.create/get` code working
+ * inside a Capacitor app.
  *
  * @since 1.0.0
  */
@@ -495,6 +532,8 @@ export interface CapacitorPasskeyPlugin {
    *
    * The shim patches `navigator.credentials.create/get` for `publicKey`
    * requests and returns browser-like credential objects.
+   *
+   * Use this when you want to override the auto-loaded config manually.
    *
    * @since 1.0.0
    * @example
@@ -507,6 +546,32 @@ export interface CapacitorPasskeyPlugin {
    * ```
    */
   shimWebAuthn(options?: ShimWebAuthnOptions): void;
+
+  /**
+   * Load plugin configuration from the host Capacitor app.
+   *
+   * This reads `plugins.CapacitorPasskey` from `capacitor.config.*`.
+   *
+   * @since 1.1.0
+   */
+  getConfiguration(): Promise<PasskeyRuntimeConfiguration>;
+
+  /**
+   * Install the browser-style shim using host app configuration.
+   *
+   * This is the easiest way to keep existing browser WebAuthn code working:
+   * configure the plugin in `capacitor.config.*`, then call this once during
+   * app bootstrap or use the `/auto` entrypoint.
+   *
+   * @since 1.1.0
+   * @example
+   * ```typescript
+   * import { CapacitorPasskey } from '@capgo/capacitor-passkey';
+   *
+   * await CapacitorPasskey.autoShimWebAuthn();
+   * ```
+   */
+  autoShimWebAuthn(options?: ShimWebAuthnOptions): Promise<PasskeyRuntimeConfiguration>;
 
   /**
    * Register a passkey from a JSON-safe WebAuthn request.

@@ -6,6 +6,19 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "unpkg": "dist/plugin.js",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/plugin.cjs.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./auto": {
+      "types": "./dist/esm/auto.d.ts",
+      "import": "./dist/esm/auto.js",
+      "default": "./dist/esm/auto.js"
+    }
+  },
   "files": [
     "android/src/main/",
     "android/build.gradle",
@@ -13,7 +26,8 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "CapgoCapacitorPasskey.podspec"
+    "CapgoCapacitorPasskey.podspec",
+    "scripts/configure-native.js"
   ],
   "author": "Martin Donadieu <martin@capgo.app>",
   "license": "MPL-2.0",
@@ -24,7 +38,7 @@
   "bugs": {
     "url": "https://github.com/Cap-go/capacitor-passkey/issues"
   },
-  "homepage": "https://github.com/Cap-go/capacitor-passkey",
+  "homepage": "https://capgo.app/docs/plugins/passkey/",
   "keywords": [
     "capacitor",
     "passkey",
@@ -33,6 +47,8 @@
     "authentication"
   ],
   "scripts": {
+    "capacitor:sync:after": "node scripts/configure-native.js",
+    "capacitor:update:after": "node scripts/configure-native.js",
     "verify": "bun run verify:ios && bun run verify:android && bun run verify:web",
     "verify:ios": "xcodebuild -scheme CapgoCapacitorPasskey -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",

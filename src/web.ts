@@ -4,6 +4,7 @@ import type {
   PasskeyAuthenticationCredential,
   PasskeyPublicKeyCredentialCreationOptionsJSON,
   PasskeyPublicKeyCredentialRequestOptionsJSON,
+  PasskeyRuntimeConfiguration,
   PasskeyRegistrationCredential,
   PasskeySupportResult,
   PluginVersionResult,
@@ -36,6 +37,18 @@ export class CapacitorPasskeyWeb extends WebPlugin implements NativeCapacitorPas
     });
 
     return browserAuthenticationToJSON(credential);
+  }
+
+  async getConfiguration(): Promise<PasskeyRuntimeConfiguration> {
+    const origin = this.currentOrigin();
+    const domains = origin ? [new URL(origin).hostname] : [];
+
+    return {
+      autoShim: true,
+      domains,
+      origin,
+      platform: 'web',
+    };
   }
 
   async isSupported(): Promise<PasskeySupportResult> {
@@ -73,5 +86,17 @@ export class CapacitorPasskeyWeb extends WebPlugin implements NativeCapacitorPas
     }
 
     return globalThis.navigator.credentials;
+  }
+
+  private currentOrigin(): string | undefined {
+    if (typeof globalThis.location === 'undefined') {
+      return undefined;
+    }
+
+    if (globalThis.location.protocol !== 'http:' && globalThis.location.protocol !== 'https:') {
+      return undefined;
+    }
+
+    return globalThis.location.origin;
   }
 }

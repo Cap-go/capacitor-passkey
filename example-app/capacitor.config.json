@@ -3,6 +3,10 @@
   "appName": "Capgo Passkey Demo",
   "webDir": "dist",
   "plugins": {
+    "CapacitorPasskey": {
+      "origin": "https://signin.example.com",
+      "autoShim": true
+    },
     "SplashScreen": {
       "launchAutoHide": false
     }

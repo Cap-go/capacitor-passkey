@@ -19,15 +19,16 @@ await navigator.credentials.get({ publicKey: requestOptions });
 
 This plugin keeps that shape in a Capacitor app:
 
-- It patches `navigator.credentials.create/get` for `publicKey` requests.
+- It can auto-patch `navigator.credentials.create/get` for `publicKey` requests.
 - It forwards the call to native passkey APIs on iOS and Android.
 - It returns browser-like credential objects so existing code can keep working.
+- It can auto-configure the generated iOS and Android host projects during `cap sync/update`.
 - It also exposes direct JSON-safe methods when your backend already returns WebAuthn JSON.
 
 What it does not do:
 
 - It does not generate backend challenges for you.
-- It does not replace Associated Domains or Digital Asset Links setup.
+- It does not remove the need for your website to host `apple-app-site-association` and `assetlinks.json`.
 - It does not make Android native passkeys report your website's HTTPS origin to the server. On Android, normal apps use the app origin (`android:apk-key-hash:...`).
 
 ## Documentation
@@ -49,20 +50,69 @@ The most complete doc is available here: https://capgo.app/docs/plugins/passkey/
 
 ```bash
 bun add @capgo/capacitor-passkey
+```
+
+## Browser-Like Setup
+
+1. Configure the plugin once in `capacitor.config.ts` or `capacitor.config.json`.
+2. Import the `/auto` entrypoint once during app bootstrap.
+3. Keep your existing browser `navigator.credentials.create/get` code unchanged.
+
+### 1. Configure `capacitor.config.*`
+
+```ts
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'app.capgo.passkey.example',
+  appName: 'My App',
+  webDir: 'dist',
+  plugins: {
+    CapacitorPasskey: {
+      origin: 'https://signin.example.com',
+      autoShim: true,
+      domains: [
+        'signin.example.com',
+      ],
+    },
+  },
+};
+
+export default config;
+```
+
+Config keys:
+
+- `origin`: the primary HTTPS relying-party origin for the app.
+- `domains`: optional extra relying-party hostnames to wire natively during `cap sync/update`.
+- `autoShim`: defaults to `true`. The `/auto` entrypoint uses this flag.
+
+Then sync native projects:
+
+```bash
 bunx cap sync
 ```
 
-## Quick Start
+During `cap sync` / `cap update`, the plugin automatically patches the generated host app:
 
-Install the shim once during app bootstrap, then keep using browser-style WebAuthn calls:
+- iOS: updates the entitlements file and wires `CODE_SIGN_ENTITLEMENTS` if needed.
+- Android: injects `asset_statements` metadata and writes a generated string resource.
+
+You do not need to manually edit the host project files every time.
+
+### 2. Import Once At Bootstrap
 
 ```ts
-import { CapacitorPasskey } from '@capgo/capacitor-passkey';
+import '@capgo/capacitor-passkey/auto';
+```
 
-CapacitorPasskey.shimWebAuthn({
-  origin: 'https://signin.example.com',
-});
+That import reads `plugins.CapacitorPasskey` from the native Capacitor config and installs the WebAuthn shim automatically.
 
+### 3. Keep Existing WebAuthn Calls
+
+After the bootstrap import, your browser-style code can stay the same:
+
+```ts
 const registration = await navigator.credentials.create({
   publicKey: {
     challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -90,6 +140,22 @@ const authentication = await navigator.credentials.get({
 });
 ```
 
+If you do not want the side-effect import, call the config-driven installer manually once:
+
+```ts
+import { CapacitorPasskey } from '@capgo/capacitor-passkey';
+
+await CapacitorPasskey.autoShimWebAuthn();
+```
+
+## What The Hook Configures
+
+The plugin hook only patches the native host app files that Capacitor generates.
+
+- It does not touch your app source code.
+- It does not require you to permanently hand-edit Xcode or Android project files.
+- It does not publish or generate the website association files for you.
+
 ### Direct JSON-safe API
 
 If your backend already returns `PublicKeyCredentialCreationOptionsJSON` or `PublicKeyCredentialRequestOptionsJSON`, you can call the plugin directly:
@@ -108,24 +174,13 @@ const authentication = await CapacitorPasskey.getCredential({
 });
 ```
 
-## Native Configuration
+## Website Files You Still Need
 
 Passkeys only work when your app is associated with the same relying-party domain as your website.
 
-### iOS
+### iOS Website Association File
 
-1. Open your Capacitor iOS app target in Xcode.
-2. Enable the `Associated Domains` capability.
-3. Add a `webcredentials:` entry for your sign-in domain:
-
-```xml
-<key>com.apple.developer.associated-domains</key>
-<array>
-  <string>webcredentials:signin.example.com</string>
-</array>
-```
-
-4. Host an `apple-app-site-association` file on that domain at:
+Host an `apple-app-site-association` file on your relying-party domain:
 
 ```text
 https://signin.example.com/.well-known/apple-app-site-association
@@ -148,12 +203,12 @@ Notes:
 - The file must be served with HTTP `200`.
 - Do not add a `.json` extension.
 - The `webcredentials` domain must match the relying-party id you use for passkeys.
-- When the app runs from `capacitor://localhost`, pass `origin` to `shimWebAuthn()` if your backend expects a specific HTTPS origin.
-- On iOS 17.4 and newer, the plugin uses the browser-style client-data API so the supplied HTTPS origin is reflected in `clientDataJSON`.
+- The plugin hook writes the associated domains entitlement for you during `cap sync/update`.
+- On iOS 17.4 and newer, the plugin uses the browser-style client-data API so the configured HTTPS origin is reflected in `clientDataJSON`.
 
-### Android
+### Android Website Association File
 
-1. Create and host a Digital Asset Links file at:
+Host a Digital Asset Links file at:
 
 ```text
 https://signin.example.com/.well-known/assetlinks.json
@@ -179,31 +234,16 @@ Example:
 ]
 ```
 
-2. In your Android app manifest, add the `asset_statements` metadata under `<application>`:
-
-```xml
-<meta-data
-  android:name="asset_statements"
-  android:resource="@string/asset_statements" />
-```
-
-3. In `android/app/src/main/res/values/strings.xml`, point that metadata to your hosted file:
-
-```xml
-<string name="asset_statements" translatable="false">[{\"include\":\"https://signin.example.com/.well-known/assetlinks.json\"}]</string>
-```
-
-Notes:
-
 - Use the same domain as your relying-party id.
 - Include every signing certificate fingerprint you need, including debug builds if you test them.
-- The plugin cannot write these values for you because they belong to the host app, not the plugin.
+- The plugin hook writes the `asset_statements` metadata and generated string resource for you during `cap sync/update`.
+- Your website still needs to serve the actual `assetlinks.json` file.
 
 ## Backend Notes
 
 This plugin preserves the front-end WebAuthn API shape, but native platforms are not identical to a browser backend contract.
 
-- iOS 17.4+ can encode the HTTPS origin you pass to the shim or direct API.
+- iOS 17.4+ can encode the HTTPS origin you configure for the shim or direct API.
 - Android Credential Manager does **not** act like a privileged browser app. The native response origin is tied to the Android app signature (`android:apk-key-hash:...`), not automatically to your website.
 - With Digital Asset Links configured, Android can still use the same relying party and passkeys as your website. The part that differs is the literal `clientDataJSON.origin` string.
 - If your server strictly validates `clientDataJSON.origin`, allow the Android app origin alongside your web origin.
@@ -213,17 +253,24 @@ This plugin preserves the front-end WebAuthn API shape, but native platforms are
 
 - On the web, the plugin forwards to the real browser WebAuthn API.
 - On native Capacitor, the shim returns browser-like credential objects backed by native APIs.
+- The `/auto` entrypoint is designed for “import once, keep browser code” setups.
 - Conditional mediation currently returns `false`.
 
 ## Example App
 
-The `example-app/` folder demonstrates the shim flow with `navigator.credentials.create/get` and lets you set the relying-party origin used by the native bridge.
+The `example-app/` folder demonstrates the auto-shim flow:
+
+- `example-app/capacitor.config.json` configures the plugin.
+- `example-app/src/main.js` imports `@capgo/capacitor-passkey/auto`.
+- The actual registration and authentication still go through `navigator.credentials.create/get`.
 
 ## API
 
 <docgen-index>
 
 * [`shimWebAuthn(...)`](#shimwebauthn)
+* [`getConfiguration()`](#getconfiguration)
+* [`autoShimWebAuthn(...)`](#autoshimwebauthn)
 * [`createCredential(...)`](#createcredential)
 * [`getCredential(...)`](#getcredential)
 * [`isSupported()`](#issupported)
@@ -238,8 +285,9 @@ The `example-app/` folder demonstrates the shim flow with `navigator.credentials
 
 Capacitor Passkey plugin.
 
-Use `shimWebAuthn()` to keep existing `navigator.credentials.create/get`
-code working inside a Capacitor app.
+Use `autoShimWebAuthn()` or import `@capgo/capacitor-passkey/auto`
+to keep existing `navigator.credentials.create/get` code working
+inside a Capacitor app.
 
 ### shimWebAuthn(...)
 
@@ -252,11 +300,53 @@ Install a browser-style WebAuthn shim on top of the native plugin.
 The shim patches `navigator.credentials.create/get` for `publicKey`
 requests and returns browser-like credential objects.
 
+Use this when you want to override the auto-loaded config manually.
+
 | Param         | Type                                                                |
 | ------------- | ------------------------------------------------------------------- |
 | **`options`** | <code><a href="#shimwebauthnoptions">ShimWebAuthnOptions</a></code> |
 
 **Since:** 1.0.0
+
+--------------------
+
+
+### getConfiguration()
+
+```typescript
+getConfiguration() => Promise<PasskeyRuntimeConfiguration>
+```
+
+Load plugin configuration from the host Capacitor app.
+
+This reads `plugins.CapacitorPasskey` from `capacitor.config.*`.
+
+**Returns:** <code>Promise&lt;<a href="#passkeyruntimeconfiguration">PasskeyRuntimeConfiguration</a>&gt;</code>
+
+**Since:** 1.1.0
+
+--------------------
+
+
+### autoShimWebAuthn(...)
+
+```typescript
+autoShimWebAuthn(options?: ShimWebAuthnOptions | undefined) => Promise<PasskeyRuntimeConfiguration>
+```
+
+Install the browser-style shim using host app configuration.
+
+This is the easiest way to keep existing browser WebAuthn code working:
+configure the plugin in `capacitor.config.*`, then call this once during
+app bootstrap or use the `/auto` entrypoint.
+
+| Param         | Type                                                                |
+| ------------- | ------------------------------------------------------------------- |
+| **`options`** | <code><a href="#shimwebauthnoptions">ShimWebAuthnOptions</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#passkeyruntimeconfiguration">PasskeyRuntimeConfiguration</a>&gt;</code>
+
+**Since:** 1.1.0
 
 --------------------
 
@@ -346,6 +436,20 @@ Options used when installing the browser-style shim.
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`origin`** | <code>string</code>  | Optional HTTPS origin to encode into iOS 17.4+ clientDataJSON. Use this when your Capacitor app runs from `capacitor://localhost` but your relying party expects `https://signin.example.com`. |
 | **`force`**  | <code>boolean</code> | Force the shim even if the runtime already exposes `navigator.credentials`. Defaults to `false`.                                                                                               |
+
+
+#### PasskeyRuntimeConfiguration
+
+Runtime configuration loaded from the host app's Capacitor config.
+
+This is the shape returned by `getConfiguration()`.
+
+| Prop           | Type                                     | Description                                                                                                                                              |
+| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`autoShim`** | <code>boolean</code>                     | Whether the `/auto` entrypoint should install the shim automatically. Defaults to `true`.                                                                |
+| **`origin`**   | <code>string</code>                      | Optional HTTPS origin used by the auto-shim. On iOS 17.4+ this origin is encoded into `clientDataJSON`.                                                  |
+| **`domains`**  | <code>string[]</code>                    | Domains associated with the app for passkey usage. These come from `domains` in Capacitor config plus the hostname derived from `origin` when available. |
+| **`platform`** | <code>'ios' \| 'android' \| 'web'</code> | Current runtime platform.                                                                                                                                |
 
 
 #### PasskeyRegistrationCredential

@@ -1,4 +1,5 @@
 import './style.css';
+import '@capgo/capacitor-passkey/auto';
 import { CapacitorPasskey } from '@capgo/capacitor-passkey';
 
 const output = document.getElementById('plugin-output');
@@ -46,11 +47,12 @@ const fromBase64Url = (value) => {
 const currentOrigin = () => originInput.value.trim() || undefined;
 const currentRpId = () => rpIdInput.value.trim() || undefined;
 
-const installShim = () => {
-  CapacitorPasskey.shimWebAuthn({
+const installShim = async () => {
+  const configuration = await CapacitorPasskey.autoShimWebAuthn({
     origin: currentOrigin(),
   });
   setStatus('Shim installed');
+  return configuration;
 };
 
 const registrationOptions = () => ({
@@ -95,13 +97,18 @@ const authenticationOptions = () => {
   };
 };
 
-installShimButton.addEventListener('click', () => {
-  installShim();
-  setOutput({
-    origin: currentOrigin(),
-    rpId: currentRpId(),
-    status: 'shim-installed',
-  });
+installShimButton.addEventListener('click', async () => {
+  try {
+    const configuration = await installShim();
+    setOutput({
+      configuration,
+      rpId: currentRpId(),
+      status: 'shim-installed',
+    });
+  } catch (error) {
+    setStatus('Shim failed');
+    setOutput(`Error: ${error?.message ?? error}`);
+  }
 });
 
 checkSupportButton.addEventListener('click', async () => {
@@ -118,7 +125,7 @@ checkSupportButton.addEventListener('click', async () => {
 
 registerButton.addEventListener('click', async () => {
   try {
-    installShim();
+    await installShim();
     setStatus('Creating passkey');
 
     const credential = await navigator.credentials.create({
@@ -144,7 +151,7 @@ registerButton.addEventListener('click', async () => {
 
 authenticateButton.addEventListener('click', async () => {
   try {
-    installShim();
+    await installShim();
     setStatus('Getting passkey');
 
     const credential = await navigator.credentials.get({
@@ -175,7 +182,25 @@ versionButton.addEventListener('click', async () => {
   }
 });
 
-setOutput({
-  hint: 'Set your relying-party domain, install the shim, then try create/get.',
-  previewChallenge: toBase64Url(randomBytes(16)),
-});
+async function bootstrap() {
+  try {
+    const configuration = await CapacitorPasskey.getConfiguration();
+    if (!originInput.value && configuration.origin) {
+      originInput.value = configuration.origin;
+    }
+
+    if (!rpIdInput.value && configuration.domains[0]) {
+      rpIdInput.value = configuration.domains[0];
+    }
+
+    setOutput({
+      hint: 'This demo auto-installs the shim from capacitor.config.*.',
+      previewChallenge: toBase64Url(randomBytes(16)),
+      runtimeConfig: configuration,
+    });
+  } catch (error) {
+    setOutput(`Error: ${error?.message ?? error}`);
+  }
+}
+
+void bootstrap();
