@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-passkey",
-  "version": "8.2.0",
+  "version": "8.2.1",
   "description": "Capacitor passkey plugin with a WebAuthn-style shim for Capacitor apps.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
