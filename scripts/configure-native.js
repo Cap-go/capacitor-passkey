@@ -165,24 +165,6 @@ function createEntitlementsPlist() {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n</dict>\n</plist>\n`;
 }
 
-function replaceEntitlementArray(content, key, values) {
-  const keyPattern = new RegExp(`\\s*<key>${key}</key>\\s*<array>[\\s\\S]*?<\\/array>\\s*`, 'm');
-  const replacement =
-    values.length > 0
-      ? `\n\t<key>${key}</key>\n\t<array>\n${values.map((value) => `\t\t<string>${value}</string>`).join('\n')}\n\t</array>\n`
-      : '\n';
-
-  if (keyPattern.test(content)) {
-    return content.replace(keyPattern, replacement);
-  }
-
-  if (values.length === 0) {
-    return content;
-  }
-
-  return content.replace('</dict>', `${replacement}</dict>`);
-}
-
 function ensureIosEntitlementsReference(projectContent, entitlementsRelativePath) {
   if (projectContent.includes('CODE_SIGN_ENTITLEMENTS =')) {
     return projectContent;
@@ -197,6 +179,59 @@ function ensureIosEntitlementsReference(projectContent, entitlementsRelativePath
 function findExistingEntitlementsPath(projectContent) {
   const match = projectContent.match(/CODE_SIGN_ENTITLEMENTS = ([^;]+);/);
   return match?.[1]?.trim();
+}
+
+function parseAssociatedDomains(content) {
+  const match = content.match(
+    /^(\s*)<key>com\.apple\.developer\.associated-domains<\/key>\s*<array>([\s\S]*?)<\/array>/m,
+  );
+
+  if (!match) {
+    return undefined;
+  }
+
+  const [fullMatch, indent, body] = match;
+  const items = [];
+  const itemRegex = /<string>([^<]+)<\/string>/g;
+  let itemMatch;
+  while ((itemMatch = itemRegex.exec(body))) {
+    items.push(itemMatch[1].trim());
+  }
+
+  return { fullMatch, indent: indent ?? '\t', items };
+}
+
+function buildAssociatedDomainsBlock(indent, items) {
+  const childIndent = indent.includes('\t') || indent === '' ? '\t' : '    ';
+  const arrayIndent = `${indent}${childIndent}`;
+  const lines = [
+    `${indent}<key>com.apple.developer.associated-domains</key>`,
+    `${indent}<array>`,
+    ...items.map((item) => `${arrayIndent}<string>${item}</string>`),
+    `${indent}</array>`,
+  ];
+
+  return `${lines.join('\n')}\n`;
+}
+
+function upsertAssociatedDomains(content, webCredentialEntries) {
+  const parsed = parseAssociatedDomains(content);
+  const webCredentialSet = new Set(webCredentialEntries);
+
+  if (parsed) {
+    const preserved = parsed.items.filter((item) => !item.startsWith('webcredentials:'));
+    const merged = [...preserved, ...webCredentialSet];
+    const nextBlock = buildAssociatedDomainsBlock(parsed.indent, merged);
+    return content.replace(parsed.fullMatch, nextBlock);
+  }
+
+  if (webCredentialEntries.length === 0) {
+    return content;
+  }
+
+  const indent = '\t';
+  const nextBlock = buildAssociatedDomainsBlock(indent, [...webCredentialSet]);
+  return content.replace('</dict>', `${nextBlock}</dict>`);
 }
 
 function configureIOS(rootDir, domains) {
@@ -216,9 +251,8 @@ function configureIOS(rootDir, domains) {
   const originalEntitlements = fs.existsSync(entitlementsPath)
     ? fs.readFileSync(entitlementsPath, 'utf8')
     : createEntitlementsPlist();
-  const nextEntitlements = replaceEntitlementArray(
+  const nextEntitlements = upsertAssociatedDomains(
     originalEntitlements.includes('<dict>') ? originalEntitlements : createEntitlementsPlist(),
-    'com.apple.developer.associated-domains',
     associatedDomains,
   );
   const entitlementsChanged = writeFileIfChanged(entitlementsPath, nextEntitlements);
@@ -242,6 +276,17 @@ function run() {
   }
 
   const config = parseConfig();
+  if (config.autoShim === false) {
+    log('Native auto-configuration disabled via plugins.CapacitorPasskey.autoShim = false.');
+    return;
+  }
+
+  if (config.domains.length === 0) {
+    log(
+      'No passkey domains configured. Add plugins.CapacitorPasskey.origin or domains in capacitor.config.* to enable automatic native wiring.',
+    );
+    return;
+  }
   const shouldConfigureAndroid = !PLATFORM || PLATFORM === 'android';
   const shouldConfigureIOS = !PLATFORM || PLATFORM === 'ios';
 
@@ -251,12 +296,6 @@ function run() {
 
   if (shouldConfigureIOS) {
     configureIOS(ROOT_DIR, config.domains);
-  }
-
-  if (config.domains.length === 0) {
-    log(
-      'No passkey domains configured. Add plugins.CapacitorPasskey.origin or domains in capacitor.config.* to enable automatic native wiring.',
-    );
   }
 }
 
