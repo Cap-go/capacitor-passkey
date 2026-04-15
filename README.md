@@ -1,9 +1,19 @@
 # @capgo/capacitor-passkey
- <a href="https://capgo.app/"><img src='https://raw.githubusercontent.com/Cap-go/capgo/main/assets/capgo_banner.png' alt='Capgo - Instant updates for capacitor'/></a>
+
+<a href="https://capgo.app/">
+  <img
+    src="https://raw.githubusercontent.com/Cap-go/capgo/main/assets/capgo_banner.png"
+    alt="Capgo - Instant updates for capacitor"
+  />
+</a>
 
 <div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin_passkey"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin_passkey"> Missing a feature? We’ll build the plugin for you 💪</a></h2>
+  <h2>
+    <a href="https://capgo.app/?ref=plugin_passkey"> ➡️ Get Instant updates for your App with Capgo</a>
+  </h2>
+  <h2>
+    <a href="https://capgo.app/consulting/?ref=plugin_passkey"> Missing a feature? We’ll build the plugin for you 💪</a>
+  </h2>
 </div>
 
 Passkeys for Capacitor with a browser-style WebAuthn shim.
@@ -39,10 +49,10 @@ The most complete doc is available here: https://capgo.app/docs/plugins/passkey/
 
 | Plugin version | Capacitor compatibility | Maintained |
 | -------------- | ----------------------- | ---------- |
-| v8.\*.\*       | v8.\*.\*                | ✅          |
-| v7.\*.\*       | v7.\*.\*                | On demand   |
-| v6.\*.\*       | v6.\*.\*                | ❌          |
-| v5.\*.\*       | v5.\*.\*                | ❌          |
+| v8.\*.\*       | v8.\*.\*                | ✅         |
+| v7.\*.\*       | v7.\*.\*                | On demand  |
+| v6.\*.\*       | v6.\*.\*                | ❌         |
+| v5.\*.\*       | v5.\*.\*                | ❌         |
 
 > **Note:** The major version of this plugin follows the major version of Capacitor. Use the version that matches your Capacitor installation.
 
@@ -71,9 +81,7 @@ const config: CapacitorConfig = {
     CapacitorPasskey: {
       origin: 'https://signin.example.com',
       autoShim: true,
-      domains: [
-        'signin.example.com',
-      ],
+      domains: ['signin.example.com'],
     },
   },
 };
@@ -85,7 +93,10 @@ Config keys:
 
 - `origin`: the primary HTTPS relying-party origin for the app.
 - `domains`: optional extra relying-party hostnames to wire natively during `cap sync/update`.
+- `configureNative`: defaults to `true`. Set to `false` when you manage entitlements/asset links yourself.
 - `autoShim`: defaults to `true`. The `/auto` entrypoint uses this flag.
+
+Set `CAPACITOR_PASSKEY_DISABLE_HOOKS=true` to temporarily skip the native hook without changing config files.
 
 Then sync native projects:
 
@@ -191,9 +202,7 @@ Example:
 ```json
 {
   "webcredentials": {
-    "apps": [
-      "ABCDE12345.app.capgo.passkey.example"
-    ]
+    "apps": ["ABCDE12345.app.capgo.passkey.example"]
   }
 }
 ```
@@ -219,10 +228,7 @@ Example:
 ```json
 [
   {
-    "relation": [
-      "delegate_permission/common.handle_all_urls",
-      "delegate_permission/common.get_login_creds"
-    ],
+    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.get_login_creds"],
     "target": {
       "namespace": "android_app",
       "package_name": "app.capgo.passkey.example",

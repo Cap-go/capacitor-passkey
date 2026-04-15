@@ -16,13 +16,41 @@ function warn(message) {
   console.warn(`[CapacitorPasskey] ${message}`);
 }
 
+function parseBoolean(value) {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) {
+    return true;
+  }
+
+  if (['false', '0', 'no', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  return undefined;
+}
+
 function parseConfig() {
+  const envHookToggle =
+    parseBoolean(process.env.CAPACITOR_PASSKEY_DISABLE_HOOKS) ??
+    parseBoolean(process.env.CAPACITOR_PASSKEY_SKIP_NATIVE_HOOKS);
+
+  const defaultConfig = {
+    autoShim: true,
+    configureNative: envHookToggle !== true,
+    domains: [],
+    origin: undefined,
+  };
+
   if (!CONFIG_JSON) {
-    return {
-      autoShim: true,
-      domains: [],
-      origin: undefined,
-    };
+    return defaultConfig;
   }
 
   try {
@@ -31,16 +59,13 @@ function parseConfig() {
     const origin = normalizeOrigin(pluginConfig.origin);
     return {
       autoShim: pluginConfig.autoShim !== false,
+      configureNative: envHookToggle !== undefined ? !envHookToggle : pluginConfig.configureNative !== false,
       domains: collectDomains(pluginConfig.domains, origin),
       origin,
     };
   } catch (error) {
     warn(`Could not parse CAPACITOR_CONFIG: ${error.message}`);
-    return {
-      autoShim: true,
-      domains: [],
-      origin: undefined,
-    };
+    return defaultConfig;
   }
 }
 
@@ -219,9 +244,17 @@ function upsertAssociatedDomains(content, webCredentialEntries) {
   const webCredentialSet = new Set(webCredentialEntries);
 
   if (parsed) {
-    const preserved = parsed.items.filter((item) => !item.startsWith('webcredentials:'));
-    const merged = [...preserved, ...webCredentialSet];
-    const nextBlock = buildAssociatedDomainsBlock(parsed.indent, merged);
+    const existingItems = [...parsed.items];
+    const seen = new Set(existingItems);
+
+    for (const entry of webCredentialEntries) {
+      if (!seen.has(entry)) {
+        existingItems.push(entry);
+        seen.add(entry);
+      }
+    }
+
+    const nextBlock = buildAssociatedDomainsBlock(parsed.indent, existingItems);
     return content.replace(parsed.fullMatch, nextBlock);
   }
 
@@ -276,6 +309,13 @@ function run() {
   }
 
   const config = parseConfig();
+  if (config.configureNative === false) {
+    log(
+      'Native auto-configuration disabled via plugins.CapacitorPasskey.configureNative = false or CAPACITOR_PASSKEY_DISABLE_HOOKS.',
+    );
+    return;
+  }
+
   if (config.autoShim === false) {
     log('Native auto-configuration disabled via plugins.CapacitorPasskey.autoShim = false.');
     return;
