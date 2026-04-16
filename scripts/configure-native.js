@@ -222,7 +222,7 @@ function upsertAssociatedDomains(content, webCredentialEntries) {
     const preserved = parsed.items.filter((item) => !item.startsWith('webcredentials:'));
     const merged = [...preserved, ...webCredentialSet];
     const nextBlock = buildAssociatedDomainsBlock(parsed.indent, merged);
-    return content.replace(parsed.fullMatch, nextBlock);
+    return content.replace(parsed.fullMatch, nextBlock.replace(/\n$/, ''));
   }
 
   if (webCredentialEntries.length === 0) {
