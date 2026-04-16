@@ -17,7 +17,8 @@
       "types": "./dist/esm/auto.d.ts",
       "import": "./dist/esm/auto.js",
       "default": "./dist/esm/auto.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "android/src/main/",
