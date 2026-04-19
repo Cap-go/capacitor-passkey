@@ -8,8 +8,8 @@ import type {
   PasskeyPublicKeyCredentialCreationOptionsJSON,
   PasskeyPublicKeyCredentialRequestOptionsJSON,
   PasskeyRegistrationCredential,
-} from './definitions';
-import type { NativePasskeyRequest } from './internal';
+} from './definitions.js';
+import type { NativePasskeyRequest } from './internal.js';
 
 type BufferLike = BufferSource | ArrayLike<number>;
 type JsonRecord = Record<string, unknown>;

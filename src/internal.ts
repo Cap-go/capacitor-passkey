@@ -3,7 +3,7 @@ import type {
   PasskeyRuntimeConfiguration,
   PasskeyRegistrationCredential,
   PasskeySupportResult,
-} from './definitions';
+} from './definitions.js';
 
 export interface NativePasskeyRequest {
   requestJson: string;

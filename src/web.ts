@@ -8,15 +8,15 @@ import type {
   PasskeyRegistrationCredential,
   PasskeySupportResult,
   PluginVersionResult,
-} from './definitions';
-import type { NativeCapacitorPasskeyPlugin, NativePasskeyRequest } from './internal';
+} from './definitions.js';
+import type { NativeCapacitorPasskeyPlugin, NativePasskeyRequest } from './internal.js';
 import {
   browserAuthenticationToJSON,
   browserCreationOptionsFromJSON,
   browserRegistrationToJSON,
   browserRequestOptionsFromJSON,
   createPasskeyDomException,
-} from './webauthn';
+} from './webauthn.js';
 
 export class CapacitorPasskeyWeb extends WebPlugin implements NativeCapacitorPasskeyPlugin {
   async createCredential(options: NativePasskeyRequest): Promise<PasskeyRegistrationCredential> {

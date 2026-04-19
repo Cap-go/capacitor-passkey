@@ -1,4 +1,4 @@
-import { CapacitorPasskey } from './index';
+import { CapacitorPasskey } from './index.js';
 
 async function installAutoShim(): Promise<void> {
   try {

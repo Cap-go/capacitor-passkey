@@ -1,12 +1,12 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { CapacitorPasskeyPlugin, PasskeyRuntimeConfiguration, ShimWebAuthnOptions } from './definitions';
-import type { NativeCapacitorPasskeyPlugin } from './internal';
-import { installWebAuthnShim } from './shim';
-import { createNativeRequest } from './webauthn';
+import type { CapacitorPasskeyPlugin, PasskeyRuntimeConfiguration, ShimWebAuthnOptions } from './definitions.js';
+import type { NativeCapacitorPasskeyPlugin } from './internal.js';
+import { installWebAuthnShim } from './shim.js';
+import { createNativeRequest } from './webauthn.js';
 
 const NativeCapacitorPasskey = registerPlugin<NativeCapacitorPasskeyPlugin>('CapacitorPasskey', {
-  web: () => import('./web').then((module) => new module.CapacitorPasskeyWeb()),
+  web: () => import('./web.js').then((module) => new module.CapacitorPasskeyWeb()),
 });
 
 let configurationPromise: Promise<PasskeyRuntimeConfiguration> | undefined;
@@ -106,5 +106,5 @@ const CapacitorPasskey: CapacitorPasskeyPlugin = {
   },
 };
 
-export * from './definitions';
+export * from './definitions.js';
 export { CapacitorPasskey };

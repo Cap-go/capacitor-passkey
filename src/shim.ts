@@ -3,7 +3,7 @@ import type {
   PasskeyAuthenticationCredential,
   PasskeyRegistrationCredential,
   ShimWebAuthnOptions,
-} from './definitions';
+} from './definitions.js';
 import {
   abortIfNeeded,
   createPasskeyDomException,
@@ -13,7 +13,7 @@ import {
   parseRequestOptionsFromJSON,
   webAuthnCreationOptionsToJSON,
   webAuthnRequestOptionsToJSON,
-} from './webauthn';
+} from './webauthn.js';
 
 type CredentialsContainerLike = Pick<CredentialsContainer, 'create' | 'get' | 'preventSilentAccess' | 'store'>;
 
