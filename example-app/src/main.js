@@ -1,5 +1,4 @@
 import './style.css';
-import '@capgo/capacitor-passkey/auto';
 import { CapacitorPasskey } from '@capgo/capacitor-passkey';
 
 const output = document.getElementById('plugin-output');
@@ -194,10 +193,12 @@ async function bootstrap() {
     }
 
     setOutput({
-      hint: 'This demo auto-installs the shim from capacitor.config.*.',
+      hint: 'This demo installs the shim explicitly during app bootstrap.',
       previewChallenge: toBase64Url(randomBytes(16)),
       runtimeConfig: configuration,
     });
+
+    await installShim();
   } catch (error) {
     setOutput(`Error: ${error?.message ?? error}`);
   }

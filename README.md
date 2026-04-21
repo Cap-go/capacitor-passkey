@@ -55,8 +55,9 @@ bun add @capgo/capacitor-passkey
 ## Browser-Like Setup
 
 1. Configure the plugin once in `capacitor.config.ts` or `capacitor.config.json`.
-2. Import the `/auto` entrypoint once during app bootstrap.
-3. Keep your existing browser `navigator.credentials.create/get` code unchanged.
+2. Import the plugin from the standard package entrypoint.
+3. Call `CapacitorPasskey.autoShimWebAuthn()` once during app bootstrap.
+4. Keep your existing browser `navigator.credentials.create/get` code unchanged.
 
 ### 1. Configure `capacitor.config.*`
 
@@ -85,7 +86,7 @@ Config keys:
 
 - `origin`: the primary HTTPS relying-party origin for the app.
 - `domains`: optional extra relying-party hostnames to wire natively during `cap sync/update`.
-- `autoShim`: defaults to `true`. The `/auto` entrypoint uses this flag.
+- `autoShim`: defaults to `true`. This only controls the native `cap sync/update` auto-configuration hook.
 
 Then sync native projects:
 
@@ -100,17 +101,19 @@ During `cap sync` / `cap update`, the plugin automatically patches the generated
 
 You do not need to manually edit the host project files every time.
 
-### 2. Import Once At Bootstrap
+### 2. Install The Shim During Bootstrap
 
 ```ts
-import '@capgo/capacitor-passkey/auto';
+import { CapacitorPasskey } from '@capgo/capacitor-passkey';
+
+await CapacitorPasskey.autoShimWebAuthn();
 ```
 
-That import reads `plugins.CapacitorPasskey` from the native Capacitor config and installs the WebAuthn shim automatically.
+That call reads `plugins.CapacitorPasskey` from the native Capacitor config and installs the WebAuthn shim explicitly.
 
 ### 3. Keep Existing WebAuthn Calls
 
-After the bootstrap import, your browser-style code can stay the same:
+After that bootstrap call, your browser-style code can stay the same:
 
 ```ts
 const registration = await navigator.credentials.create({
@@ -138,14 +141,6 @@ const authentication = await navigator.credentials.get({
     rpId: 'signin.example.com',
   },
 });
-```
-
-If you do not want the side-effect import, call the config-driven installer manually once:
-
-```ts
-import { CapacitorPasskey } from '@capgo/capacitor-passkey';
-
-await CapacitorPasskey.autoShimWebAuthn();
 ```
 
 ## What The Hook Configures
@@ -253,7 +248,7 @@ This plugin preserves the front-end WebAuthn API shape, but native platforms are
 
 - On the web, the plugin forwards to the real browser WebAuthn API.
 - On native Capacitor, the shim returns browser-like credential objects backed by native APIs.
-- The `/auto` entrypoint is designed for “import once, keep browser code” setups.
+- Call `CapacitorPasskey.autoShimWebAuthn()` once during bootstrap before using browser-style WebAuthn calls.
 - Conditional mediation currently returns `false`.
 
 ## Example App
@@ -261,7 +256,8 @@ This plugin preserves the front-end WebAuthn API shape, but native platforms are
 The `example-app/` folder demonstrates the auto-shim flow:
 
 - `example-app/capacitor.config.json` configures the plugin.
-- `example-app/src/main.js` imports `@capgo/capacitor-passkey/auto`.
+- `example-app/src/main.js` imports `CapacitorPasskey` from `@capgo/capacitor-passkey`.
+- `example-app/src/main.js` calls `CapacitorPasskey.autoShimWebAuthn()` during bootstrap.
 - The actual registration and authentication still go through `navigator.credentials.create/get`.
 
 ## API
@@ -285,9 +281,8 @@ The `example-app/` folder demonstrates the auto-shim flow:
 
 Capacitor Passkey plugin.
 
-Use `autoShimWebAuthn()` or import `@capgo/capacitor-passkey/auto`
-to keep existing `navigator.credentials.create/get` code working
-inside a Capacitor app.
+Use `autoShimWebAuthn()` to keep existing `navigator.credentials.create/get`
+code working inside a Capacitor app.
 
 ### shimWebAuthn(...)
 
@@ -338,7 +333,7 @@ Install the browser-style shim using host app configuration.
 
 This is the easiest way to keep existing browser WebAuthn code working:
 configure the plugin in `capacitor.config.*`, then call this once during
-app bootstrap or use the `/auto` entrypoint.
+app bootstrap.
 
 | Param         | Type                                                                |
 | ------------- | ------------------------------------------------------------------- |
@@ -446,8 +441,8 @@ This is the shape returned by `getConfiguration()`.
 
 | Prop           | Type                                     | Description                                                                                                                                              |
 | -------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`autoShim`** | <code>boolean</code>                     | Whether the `/auto` entrypoint should install the shim automatically. Defaults to `true`.                                                                |
-| **`origin`**   | <code>string</code>                      | Optional HTTPS origin used by the auto-shim. On iOS 17.4+ this origin is encoded into `clientDataJSON`.                                                  |
+| **`autoShim`** | <code>boolean</code>                     | Whether the native `cap sync/update` hook should wire host projects automatically. Defaults to `true`.                                                   |
+| **`origin`**   | <code>string</code>                      | Optional HTTPS origin used by the config-driven shim install. On iOS 17.4+ this origin is encoded into `clientDataJSON`.                                 |
 | **`domains`**  | <code>string[]</code>                    | Domains associated with the app for passkey usage. These come from `domains` in Capacitor config plus the hostname derived from `origin` when available. |
 | **`platform`** | <code>'ios' \| 'android' \| 'web'</code> | Current runtime platform.                                                                                                                                |
 

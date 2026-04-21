@@ -6,19 +6,6 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "unpkg": "dist/plugin.js",
-  "exports": {
-    ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/plugin.cjs.js",
-      "default": "./dist/esm/index.js"
-    },
-    "./auto": {
-      "types": "./dist/esm/auto.d.ts",
-      "import": "./dist/esm/auto.js",
-      "default": "./dist/esm/auto.js"
-    }
-  },
   "files": [
     "android/src/main/",
     "android/build.gradle",

@@ -65,10 +65,6 @@ async function loadConfiguration(): Promise<PasskeyRuntimeConfiguration> {
 const CapacitorPasskey: CapacitorPasskeyPlugin = {
   async autoShimWebAuthn(options) {
     const configuration = await CapacitorPasskey.getConfiguration();
-    if (!configuration.autoShim && !options?.force) {
-      return configuration;
-    }
-
     const effectiveConfiguration = mergeRuntimeConfiguration(configuration, options);
     cachedConfiguration = effectiveConfiguration;
 
