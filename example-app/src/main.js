@@ -183,7 +183,7 @@ versionButton.addEventListener('click', async () => {
 
 async function bootstrap() {
   try {
-    const configuration = await CapacitorPasskey.getConfiguration();
+    const configuration = await installShim();
     if (!originInput.value && configuration.origin) {
       originInput.value = configuration.origin;
     }
@@ -197,8 +197,6 @@ async function bootstrap() {
       previewChallenge: toBase64Url(randomBytes(16)),
       runtimeConfig: configuration,
     });
-
-    await installShim();
   } catch (error) {
     setOutput(`Error: ${error?.message ?? error}`);
   }
