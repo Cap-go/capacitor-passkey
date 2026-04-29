@@ -42,3 +42,12 @@ bun publish
 ```
 
 > The `files` array in `package.json` controls what is published. Update it if you move files.
+
+## PR Beta Packages
+
+Each PR gets a bot comment that explains how to publish a temporary npm build for testing.
+
+Maintainers can comment `/publish-beta` on a PR once checks are green. CI will publish the PR head to:
+
+- the shared `beta` dist-tag
+- a pinned `pr-<number>` dist-tag for that exact PR build
