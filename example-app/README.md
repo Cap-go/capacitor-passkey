@@ -3,7 +3,8 @@
 This Vite project links directly to the local plugin source and demonstrates the intended flow:
 
 - configure the plugin in `capacitor.config.json`
-- import `@capgo/capacitor-passkey/auto`
+- import `CapacitorPasskey` from `@capgo/capacitor-passkey`
+- call `CapacitorPasskey.autoShimWebAuthn()` during app bootstrap
 - call `navigator.credentials.create()`
 - call `navigator.credentials.get()`
 - inspect the JSON result coming back from native
