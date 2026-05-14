@@ -313,7 +313,7 @@ function credentialWithToJSON(credential: PublicKeyCredential): CredentialJson |
     return null;
   }
 
-  const json = toJSON();
+  const json = toJSON.call(credential);
 
   if (!json || typeof json !== 'object') {
     return null;
