@@ -45,17 +45,17 @@ export function installWebAuthnShim({ root = globalThis, plugin, options }: Inst
     return;
   }
 
-  Object.defineProperty(window, 'PublicKeyCredential', {
+  Object.defineProperty(root.window, 'PublicKeyCredential', {
     configurable: true,
     writable: true,
     value: PasskeyPublicKeyCredential,
   });
-  Object.defineProperty(window, 'AuthenticatorAttestationResponse', {
+  Object.defineProperty(root.window, 'AuthenticatorAttestationResponse', {
     configurable: true,
     writable: true,
     value: PasskeyAuthenticatorAttestationResponse,
   });
-  Object.defineProperty(window, 'AuthenticatorAssertionResponse', {
+  Object.defineProperty(root.window, 'AuthenticatorAssertionResponse', {
     configurable: true,
     writable: true,
     value: PasskeyAuthenticatorAssertionResponse,

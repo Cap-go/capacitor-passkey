@@ -568,14 +568,6 @@ export class PasskeyPublicKeyCredential {
   toJSON(): CredentialJson {
     return JSON.parse(JSON.stringify(this.json)) as CredentialJson;
   }
-
-  static isUserVerifyingPlatformAuthenticatorAvailable(): Promise<boolean> {
-    return Promise.resolve(true);
-  }
-
-  static isConditionalMediationAvailable(): Promise<boolean> {
-    return Promise.resolve(false);
-  }
 }
 
 function resolveErrorName(error: unknown): string {
