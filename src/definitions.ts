@@ -378,6 +378,11 @@ export interface PasskeyAuthenticatorAttestationResponseJSON {
    * Optional transport list when provided by the platform.
    */
   transports?: string[];
+
+  /**
+   * Optional base64url-encoded authenticator data.
+   */
+  authenticatorData?: string;
 }
 
 /**

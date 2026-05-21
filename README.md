@@ -474,6 +474,7 @@ All binary fields are base64url encoded.
 | **`publicKey`**          | <code>string</code>   | Optional base64url-encoded public key when provided by the platform. |
 | **`publicKeyAlgorithm`** | <code>number</code>   | Optional public key algorithm when provided by the platform.         |
 | **`transports`**         | <code>string[]</code> | Optional transport list when provided by the platform.               |
+| **`authenticatorData`**  | <code>string</code>   | Optional base64url-encoded authenticator data.                       |
 
 
 #### CreateCredentialOptions

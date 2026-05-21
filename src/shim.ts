@@ -8,11 +8,14 @@ import {
   abortIfNeeded,
   createPasskeyDomException,
   credentialFromJSON,
+  PasskeyPublicKeyCredential,
   normalizePluginError,
   parseCreationOptionsFromJSON,
   parseRequestOptionsFromJSON,
   webAuthnCreationOptionsToJSON,
   webAuthnRequestOptionsToJSON,
+  PasskeyAuthenticatorAssertionResponse,
+  PasskeyAuthenticatorAttestationResponse,
 } from './webauthn';
 
 type CredentialsContainerLike = Pick<CredentialsContainer, 'create' | 'get' | 'preventSilentAccess' | 'store'>;
@@ -41,6 +44,22 @@ export function installWebAuthnShim({ root = globalThis, plugin, options }: Inst
   if (shimRoot.__capgoPasskeyShimInstalled && !config.force) {
     return;
   }
+
+  Object.defineProperty(window, 'PublicKeyCredential', {
+    configurable: true,
+    writable: true,
+    value: PasskeyPublicKeyCredential,
+  });
+  Object.defineProperty(window, 'AuthenticatorAttestationResponse', {
+    configurable: true,
+    writable: true,
+    value: PasskeyAuthenticatorAttestationResponse,
+  });
+  Object.defineProperty(window, 'AuthenticatorAssertionResponse', {
+    configurable: true,
+    writable: true,
+    value: PasskeyAuthenticatorAssertionResponse,
+  });
 
   const originalCredentials = shimRoot.navigator.credentials;
   const patchedCredentials: CredentialsContainerLike = {
