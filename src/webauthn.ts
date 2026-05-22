@@ -494,13 +494,15 @@ function clientExtensionResultsToRecord(
   return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
 }
 
-class PasskeyAuthenticatorAttestationResponse {
+export class PasskeyAuthenticatorAttestationResponse {
   public readonly clientDataJSON: ArrayBuffer;
   public readonly attestationObject: ArrayBuffer;
+  public readonly authenticatorData: ArrayBuffer;
 
   constructor(private readonly json: PasskeyAuthenticatorAttestationResponseJSON) {
     this.clientDataJSON = decodeBase64Url(json.clientDataJSON);
     this.attestationObject = decodeBase64Url(json.attestationObject);
+    this.authenticatorData = json.authenticatorData ? decodeBase64Url(json.authenticatorData) : new ArrayBuffer(0);
   }
 
   getPublicKey(): ArrayBuffer | null {
@@ -515,12 +517,16 @@ class PasskeyAuthenticatorAttestationResponse {
     return this.json.transports ? [...this.json.transports] : [];
   }
 
+  getAuthenticatorData(): ArrayBuffer {
+    return this.authenticatorData;
+  }
+
   toJSON(): PasskeyAuthenticatorAttestationResponseJSON {
     return { ...this.json };
   }
 }
 
-class PasskeyAuthenticatorAssertionResponse {
+export class PasskeyAuthenticatorAssertionResponse {
   public readonly clientDataJSON: ArrayBuffer;
   public readonly authenticatorData: ArrayBuffer;
   public readonly signature: ArrayBuffer;
@@ -538,7 +544,7 @@ class PasskeyAuthenticatorAssertionResponse {
   }
 }
 
-class PasskeyPublicKeyCredential {
+export class PasskeyPublicKeyCredential {
   public readonly id: string;
   public readonly rawId: ArrayBuffer;
   public readonly type: PublicKeyCredentialType = PASSKEY_TYPE;
