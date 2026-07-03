@@ -4,7 +4,7 @@ import pkg from './package.json';
 
 const config: CapacitorConfig = {
   appId: 'app.capgo.passkey.example',
-  appName: 'Capgo Passkey Demo',
+  appName: '@capgo/capacitor-passkey',
   webDir: 'dist',
   plugins: {
     CapacitorPasskey: {
