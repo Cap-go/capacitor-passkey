@@ -101,9 +101,12 @@ export function installWebAuthnShim({ root = globalThis, plugin, options }: Inst
         );
       }
 
+      const hints = (request.publicKey as PublicKeyCredentialRequestOptions & { hints?: string[] }).hints;
+
       const response = (await plugin.getCredential({
         mediation: request.mediation,
         origin: currentConfig.origin,
+        preferImmediatelyAvailableCredentials: hints?.includes('client-device') || undefined,
         publicKey: webAuthnRequestOptionsToJSON(request.publicKey, currentConfig.origin),
       })) as PasskeyAuthenticationCredential;
 

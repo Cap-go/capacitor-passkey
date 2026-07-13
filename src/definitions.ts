@@ -344,6 +344,12 @@ export interface GetCredentialOptions {
    * Optional HTTPS origin to use for iOS 17.4+ browser-style clientDataJSON.
    */
   origin?: string;
+
+  /**
+   * Prefer passkeys stored on the local device, skipping the hybrid/nearby-device picker.
+   * Fails with `NotAllowedError` when no local credential exists. Ignored on web and iOS 15.
+   */
+  preferImmediatelyAvailableCredentials?: boolean;
 }
 
 /**

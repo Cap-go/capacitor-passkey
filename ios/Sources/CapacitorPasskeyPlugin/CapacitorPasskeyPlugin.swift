@@ -166,7 +166,12 @@ public class CapacitorPasskeyPlugin: CAPPlugin,
             let assertionRequest = try JSONDecoder().decode(PasskeyAssertionRequestJSON.self, from: requestJson)
             let origin = normalizedOrigin(call.getString("origin"), rpId: assertionRequest.rpId)
             let authorizationRequest = try buildAssertionRequest(from: assertionRequest, origin: origin)
-            performAuthorization(call: call, request: authorizationRequest, operation: .assertion)
+            performAuthorization(
+                call: call,
+                request: authorizationRequest,
+                operation: .assertion,
+                preferImmediatelyAvailableCredentials: call.getBool("preferImmediatelyAvailableCredentials") ?? false
+            )
         } catch let error as PasskeyPluginError {
             reject(call, error: error)
         } catch {
@@ -255,7 +260,12 @@ public class CapacitorPasskeyPlugin: CAPPlugin,
         bridge?.viewController?.view.window ?? ASPresentationAnchor()
     }
 
-    private func performAuthorization(call: CAPPluginCall, request: ASAuthorizationRequest, operation: PasskeyOperation) {
+    private func performAuthorization(
+        call: CAPPluginCall,
+        request: ASAuthorizationRequest,
+        operation: PasskeyOperation,
+        preferImmediatelyAvailableCredentials: Bool = false
+    ) {
         pendingCall = call
         pendingOperation = operation
 
@@ -263,7 +273,11 @@ public class CapacitorPasskeyPlugin: CAPPlugin,
             let controller = ASAuthorizationController(authorizationRequests: [request])
             controller.delegate = self
             controller.presentationContextProvider = self
-            controller.performRequests()
+            if #available(iOS 16.0, *), preferImmediatelyAvailableCredentials {
+                controller.performRequests(options: .preferImmediatelyAvailableCredentials)
+            } else {
+                controller.performRequests()
+            }
         }
     }
 

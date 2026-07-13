@@ -22,6 +22,7 @@ export function createNativeRequest(options: CreateCredentialOptions | GetCreden
     const getOptions = options as GetCredentialOptions;
     return {
       origin: resolveOrigin(getOptions.origin, getOptions.publicKey.rpId),
+      preferImmediatelyAvailableCredentials: getOptions.preferImmediatelyAvailableCredentials,
       requestJson: JSON.stringify(normalizeRequestOptionsJSON(getOptions.publicKey, getOptions.origin)),
     };
   }
