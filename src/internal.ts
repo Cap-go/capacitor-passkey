@@ -8,6 +8,7 @@ import type {
 export interface NativePasskeyRequest {
   requestJson: string;
   origin?: string;
+  preferImmediatelyAvailableCredentials?: boolean;
 }
 
 export interface NativeCapacitorPasskeyPlugin {

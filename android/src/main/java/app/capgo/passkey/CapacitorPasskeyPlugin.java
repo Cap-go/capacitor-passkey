@@ -127,9 +127,13 @@ public class CapacitorPasskeyPlugin extends Plugin {
             return;
         }
 
+        final boolean preferImmediatelyAvailableCredentials = Boolean.TRUE.equals(call.getBoolean("preferImmediatelyAvailableCredentials"));
         final GetCredentialRequest request;
         try {
-            request = new GetCredentialRequest(List.of(new GetPublicKeyCredentialOption(requestJson)));
+            request = new GetCredentialRequest.Builder()
+                .addCredentialOption(new GetPublicKeyCredentialOption(requestJson))
+                .setPreferImmediatelyAvailableCredentials(preferImmediatelyAvailableCredentials)
+                .build();
         } catch (Exception exception) {
             rejectDom(call, "SyntaxError", "Could not create the native authentication request.", exception);
             return;

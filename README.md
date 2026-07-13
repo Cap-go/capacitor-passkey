@@ -611,11 +611,12 @@ All binary fields are base64url encoded.
 
 Direct authentication request for the plugin transport.
 
-| Prop            | Type                                                                                                                  | Description                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **`publicKey`** | <code><a href="#passkeypublickeycredentialrequestoptionsjson">PasskeyPublicKeyCredentialRequestOptionsJSON</a></code> | JSON-safe authentication request.                                                  |
-| **`mediation`** | <code>string</code>                                                                                                   | Optional mediation hint. `conditional` currently falls back to an explicit prompt. |
-| **`origin`**    | <code>string</code>                                                                                                   | Optional HTTPS origin to use for iOS 17.4+ browser-style clientDataJSON.           |
+| Prop                                        | Type                                                                                                                  | Description                                                                                                                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`publicKey`**                             | <code><a href="#passkeypublickeycredentialrequestoptionsjson">PasskeyPublicKeyCredentialRequestOptionsJSON</a></code> | JSON-safe authentication request.                                                                                                                                              |
+| **`mediation`**                             | <code>string</code>                                                                                                   | Optional mediation hint. `conditional` currently falls back to an explicit prompt.                                                                                             |
+| **`origin`**                                | <code>string</code>                                                                                                   | Optional HTTPS origin to use for iOS 17.4+ browser-style clientDataJSON.                                                                                                       |
+| **`preferImmediatelyAvailableCredentials`** | <code>boolean</code>                                                                                                  | Prefer passkeys stored on the local device, skipping the hybrid/nearby-device picker. Fails with `NotAllowedError` when no local credential exists. Ignored on web and iOS 15. |
 
 
 #### PasskeyPublicKeyCredentialRequestOptionsJSON
