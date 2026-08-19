@@ -495,6 +495,67 @@ export interface PasskeyAuthenticationCredential {
 }
 
 /**
+ * Shape of the `data` object on a rejected passkey call.
+ *
+ * Capacitor surfaces this as `error.data` on the rejected promise.
+ * `code` / `name` on the error stay WebAuthn-style (`NotAllowedError`, etc.);
+ * platform diagnostics live under `native` when available.
+ *
+ * @since 8.5.0
+ */
+export interface PasskeyErrorData {
+  /**
+   * WebAuthn-style error name. Same value as the Capacitor error code.
+   */
+  name: string;
+
+  /**
+   * Platform error details, for diagnostics.
+   *
+   * Omitted when the plugin itself raised the failure (for example invalid
+   * request JSON) rather than the native credential API.
+   */
+  native?: PasskeyNativeErrorDetails;
+}
+
+/**
+ * Platform-native error details attached to a rejected passkey call.
+ *
+ * Nested and platform-neutral so Android can report the same shape later.
+ *
+ * @since 8.5.0
+ */
+export interface PasskeyNativeErrorDetails {
+  /**
+   * Platform that produced the native error.
+   */
+  platform: 'ios' | 'android';
+
+  /**
+   * Platform error code.
+   *
+   * On iOS this is the `ASAuthorizationError` code (for example `1004` when
+   * the webcredentials association cannot be verified).
+   */
+  code: number | string;
+
+  /**
+   * Platform error domain.
+   *
+   * On iOS this is the `NSError` domain (for example
+   * `com.apple.AuthenticationServices.AuthorizationError`).
+   */
+  domain?: string;
+
+  /**
+   * Platform-provided failure reason, when available.
+   *
+   * On iOS this comes from `NSLocalizedFailureReasonErrorKey`.
+   */
+  failureReason?: string;
+}
+
+/**
  * Plugin version payload.
  *
  * @since 1.0.0
