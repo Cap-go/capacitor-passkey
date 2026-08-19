@@ -1,3 +1,5 @@
+import AuthenticationServices
+import Capacitor
 import Foundation
 
 @objc public class CapacitorPasskey: NSObject {
@@ -30,6 +32,36 @@ import Foundation
         }
 
         return data
+    }
+
+    static func errorName(for code: ASAuthorizationError.Code) -> String {
+        switch code {
+        case .canceled, .failed, .notHandled:
+            return "NotAllowedError"
+        case .matchedExcludedCredential:
+            return "InvalidStateError"
+        default:
+            return "UnknownError"
+        }
+    }
+
+    static func nativeErrorDetails(from error: Error) -> JSObject? {
+        guard let authorizationError = error as? ASAuthorizationError else {
+            return nil
+        }
+
+        let nsError = error as NSError
+        var details: JSObject = [
+            "platform": "ios",
+            "code": authorizationError.code.rawValue,
+            "domain": nsError.domain
+        ]
+
+        if let reason = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String {
+            details["failureReason"] = reason
+        }
+
+        return details
     }
 }
 

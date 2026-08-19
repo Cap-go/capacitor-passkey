@@ -119,9 +119,9 @@ private func normalizeDomain(_ value: String?) -> String? {
 
 @objc(CapacitorPasskeyPlugin)
 public class CapacitorPasskeyPlugin: CAPPlugin,
-    CAPBridgedPlugin,
-    ASAuthorizationControllerDelegate,
-    ASAuthorizationControllerPresentationContextProviding {
+                                     CAPBridgedPlugin,
+                                     ASAuthorizationControllerDelegate,
+                                     ASAuthorizationControllerPresentationContextProviding {
     public let identifier = "CapacitorPasskeyPlugin"
     public let jsName = "CapacitorPasskey"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -242,14 +242,17 @@ public class CapacitorPasskeyPlugin: CAPPlugin,
 
         clearPendingRequest()
         if let authorizationError = error as? ASAuthorizationError {
-            switch authorizationError.code {
-            case .canceled, .failed, .notHandled:
-                reject(call, name: "NotAllowedError", message: authorizationError.localizedDescription, error: error)
-            case .matchedExcludedCredential:
-                reject(call, name: "InvalidStateError", message: authorizationError.localizedDescription, error: error)
-            default:
-                reject(call, name: "UnknownError", message: authorizationError.localizedDescription, error: error)
+            var data: JSObject = [:]
+            if let native = CapacitorPasskey.nativeErrorDetails(from: error) {
+                data["native"] = native
             }
+            reject(
+                call,
+                name: CapacitorPasskey.errorName(for: authorizationError.code),
+                message: authorizationError.localizedDescription,
+                error: error,
+                data: data
+            )
             return
         }
 
@@ -395,8 +398,15 @@ public class CapacitorPasskeyPlugin: CAPPlugin,
         reject(call, name: error.name, message: error.message)
     }
 
-    private func reject(_ call: CAPPluginCall, name: String, message: String, error: Error? = nil) {
-        let data: JSObject = ["name": name]
-        call.reject(message, name, error, data)
+    private func reject(
+        _ call: CAPPluginCall,
+        name: String,
+        message: String,
+        error: Error? = nil,
+        data: JSObject = [:]
+    ) {
+        var payload = data
+        payload["name"] = name
+        call.reject(message, name, error, payload)
     }
 }
