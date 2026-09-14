@@ -157,14 +157,16 @@ function collectScanRoots(pluginDir, pkg) {
   const cap = typeof pkg.capacitor === "object" && pkg.capacitor ? pkg.capacitor : {};
   const roots = [];
   if (cap.android) {
-    const androidMain = path.join(pluginDir, "android", "src", "main");
+    const androidSrc = cap.android.src || "android";
+    const androidMain = path.join(pluginDir, androidSrc, "src", "main");
     if (exists(androidMain)) roots.push(androidMain);
   }
   if (cap.ios) {
-    const iosSources = path.join(pluginDir, "ios", "Sources");
+    const iosSrc = cap.ios.src || "ios";
+    const iosSources = path.join(pluginDir, iosSrc, "Sources");
     if (exists(iosSources)) roots.push(iosSources);
     else {
-      const iosDir = path.join(pluginDir, "ios");
+      const iosDir = path.join(pluginDir, iosSrc);
       if (exists(iosDir)) roots.push(iosDir);
     }
   }
@@ -186,7 +188,9 @@ function scanFile(filePath, rule) {
       continue;
     }
     if (rule.ignoreLine?.test(line)) continue;
-    if (rule.pattern.test(line)) {
+    const slashComment = line.indexOf("//");
+    const codeLine = slashComment === -1 ? line : line.slice(0, slashComment);
+    if (rule.pattern.test(codeLine)) {
       hits.push({ line: i + 1, text: line.trim() });
     }
   }
@@ -215,7 +219,7 @@ if (!cap.android && !cap.ios) {
   process.exit(0);
 }
 
-const scanRoots = collectScanRoots(pluginDir, cap);
+const scanRoots = collectScanRoots(pluginDir, pkg);
 const allExts = [...new Set(RULES.flatMap((r) => r.exts))];
 const files = [];
 for (const root of scanRoots) {
