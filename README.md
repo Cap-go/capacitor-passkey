@@ -1,12 +1,28 @@
 # @capgo/capacitor-passkey
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-passkey" alt="Capgo - Instant updates for Capacitor" /></a>
+
+Add passkeys to your Capacitor app without rewriting your web login: the plugin can shim `navigator.credentials` and forward calls to the native passkey APIs on iOS and Android.
+
+<a href="https://capgo.app/?ref=plugin_passkey"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-passkey" alt="Capgo - Instant updates for Capacitor" /></a>
 
 <div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin_passkey"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin_passkey"> Missing a feature? We’ll build the plugin for you 💪</a></h2>
+  <p><b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without waiting for app store review.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_passkey">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p><a href="https://capgo.app/consulting/?ref=plugin_passkey">Missing a feature? We'll build the plugin for you 💪</a></p>
 </div>
 
-Passkeys for Capacitor with a browser-style WebAuthn shim.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-passkey/main/assets/github-social-preview.png" alt="@capgo/capacitor-passkey for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **WebAuthn shim**: `autoShimWebAuthn()` patches `navigator.credentials.create` and `get` for `publicKey` requests.
+- **Direct API**: `createCredential()` and `getCredential()` take JSON-safe WebAuthn options from your backend.
+- **Native APIs**: AuthenticationServices on iOS and Credential Manager on Android.
+- **Project setup**: can configure the generated iOS and Android projects during `cap sync`.
+- **Support check**: `isSupported()` and `getConfiguration()`.
+- **Platforms**: iOS, Android and Web. On web, the plugin uses the browser WebAuthn API.
 
 ## Why this plugin
 
