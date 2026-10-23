@@ -13,7 +13,9 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.GetPublicKeyCredentialOption;
 import androidx.credentials.PublicKeyCredential;
+import androidx.credentials.exceptions.CreateCredentialCancellationException;
 import androidx.credentials.exceptions.CreateCredentialException;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.credentials.exceptions.NoCredentialException;
 import androidx.credentials.exceptions.domerrors.DomError;
@@ -229,6 +231,11 @@ public class CapacitorPasskeyPlugin extends Plugin {
             return;
         }
 
+        if (exception instanceof CreateCredentialCancellationException) {
+            rejectDom(call, "NotAllowedError", messageFor(exception, "Passkey registration was cancelled."), exception);
+            return;
+        }
+
         rejectDom(call, "UnknownError", messageFor(exception, "Passkey registration failed."), exception);
     }
 
@@ -236,6 +243,11 @@ public class CapacitorPasskeyPlugin extends Plugin {
         if (exception instanceof GetPublicKeyCredentialDomException) {
             DomError domError = ((GetPublicKeyCredentialDomException) exception).getDomError();
             rejectDom(call, domError.getClass().getSimpleName(), messageFor(exception, "Passkey authentication failed."), exception);
+            return;
+        }
+
+        if (exception instanceof GetCredentialCancellationException) {
+            rejectDom(call, "NotAllowedError", messageFor(exception, "Passkey authentication was cancelled."), exception);
             return;
         }
 
