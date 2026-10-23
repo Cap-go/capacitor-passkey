@@ -13,12 +13,10 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.GetPublicKeyCredentialOption;
 import androidx.credentials.PublicKeyCredential;
+import androidx.credentials.exceptions.CreateCredentialCancellationException;
 import androidx.credentials.exceptions.CreateCredentialException;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
-import androidx.credentials.exceptions.NoCredentialException;
-import androidx.credentials.exceptions.domerrors.DomError;
-import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException;
-import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -223,28 +221,21 @@ public class CapacitorPasskeyPlugin extends Plugin {
     }
 
     private void rejectCreateException(PluginCall call, CreateCredentialException exception) {
-        if (exception instanceof CreatePublicKeyCredentialDomException) {
-            DomError domError = ((CreatePublicKeyCredentialDomException) exception).getDomError();
-            rejectDom(call, domError.getClass().getSimpleName(), messageFor(exception, "Passkey registration failed."), exception);
-            return;
-        }
-
-        rejectDom(call, "UnknownError", messageFor(exception, "Passkey registration failed."), exception);
+        String fallback =
+            exception instanceof CreateCredentialCancellationException
+                ? "Passkey registration was cancelled."
+                : "Passkey registration failed.";
+        rejectDom(call, CapacitorPasskey.errorNameForCreateException(exception), messageFor(exception, fallback), exception);
     }
 
     private void rejectGetException(PluginCall call, GetCredentialException exception) {
-        if (exception instanceof GetPublicKeyCredentialDomException) {
-            DomError domError = ((GetPublicKeyCredentialDomException) exception).getDomError();
-            rejectDom(call, domError.getClass().getSimpleName(), messageFor(exception, "Passkey authentication failed."), exception);
-            return;
-        }
-
-        if (exception instanceof NoCredentialException) {
-            rejectDom(call, "NotFoundError", "No matching passkey was found.", exception);
-            return;
-        }
-
-        rejectDom(call, "UnknownError", messageFor(exception, "Passkey authentication failed."), exception);
+        String fallback =
+            exception instanceof GetCredentialCancellationException
+                ? "Passkey authentication was cancelled."
+                : exception instanceof NoCredentialException
+                    ? "No matching passkey was found."
+                    : "Passkey authentication failed.";
+        rejectDom(call, CapacitorPasskey.errorNameForGetException(exception), messageFor(exception, fallback), exception);
     }
 
     private String messageFor(CreateCredentialException exception, String fallback) {
