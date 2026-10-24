@@ -46,6 +46,22 @@ public class CapacitorPasskeyTest {
     }
 
     @Test
+    public void errorMessageForGetException_usesFallbackWhenCancellationMessageIsEmpty() {
+        assertEquals(
+            "Passkey authentication was cancelled.",
+            CapacitorPasskey.errorMessageForGetException(new GetCredentialCancellationException(""))
+        );
+    }
+
+    @Test
+    public void errorMessageForCreateException_usesFallbackWhenCancellationMessageIsEmpty() {
+        assertEquals(
+            "Passkey registration was cancelled.",
+            CapacitorPasskey.errorMessageForCreateException(new CreateCredentialCancellationException(""))
+        );
+    }
+
+    @Test
     public void errorNameForGetException_mapsUnknownFailuresToUnknownError() {
         assertEquals("UnknownError", CapacitorPasskey.errorNameForGetException(new GetCredentialUnknownException("failed")));
     }

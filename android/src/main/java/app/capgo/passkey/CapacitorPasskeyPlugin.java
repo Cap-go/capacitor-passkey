@@ -13,9 +13,7 @@ import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.GetPublicKeyCredentialOption;
 import androidx.credentials.PublicKeyCredential;
-import androidx.credentials.exceptions.CreateCredentialCancellationException;
 import androidx.credentials.exceptions.CreateCredentialException;
-import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -221,26 +219,17 @@ public class CapacitorPasskeyPlugin extends Plugin {
     }
 
     private void rejectCreateException(PluginCall call, CreateCredentialException exception) {
-        String fallback =
-            exception instanceof CreateCredentialCancellationException
-                ? "Passkey registration was cancelled."
-                : "Passkey registration failed.";
-        rejectDom(call, CapacitorPasskey.errorNameForCreateException(exception), messageFor(exception, fallback), exception);
+        rejectDom(
+            call,
+            CapacitorPasskey.errorNameForCreateException(exception),
+            CapacitorPasskey.errorMessageForCreateException(exception),
+            exception
+        );
     }
 
     private void rejectGetException(PluginCall call, GetCredentialException exception) {
         String name = CapacitorPasskey.errorNameForGetException(exception);
         rejectDom(call, name, CapacitorPasskey.errorMessageForGetException(exception), exception);
-    }
-
-    private String messageFor(CreateCredentialException exception, String fallback) {
-        CharSequence message = exception.getErrorMessage();
-        return message != null ? message.toString() : fallback;
-    }
-
-    private String messageFor(GetCredentialException exception, String fallback) {
-        CharSequence message = exception.getErrorMessage();
-        return message != null ? message.toString() : fallback;
     }
 
     private void rejectDom(PluginCall call, String name, String message, Exception exception) {

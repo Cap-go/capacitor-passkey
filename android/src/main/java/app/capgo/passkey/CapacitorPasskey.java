@@ -67,7 +67,21 @@ public class CapacitorPasskey {
         if ("NotFoundError".equals(name)) {
             return fallback;
         }
-        CharSequence message = exception.getErrorMessage();
-        return message != null ? message.toString() : fallback;
+        return credentialErrorMessage(exception.getErrorMessage(), fallback);
+    }
+
+    public static String errorMessageForCreateException(CreateCredentialException exception) {
+        String fallback =
+            exception instanceof CreateCredentialCancellationException
+                ? "Passkey registration was cancelled."
+                : "Passkey registration failed.";
+        return credentialErrorMessage(exception.getErrorMessage(), fallback);
+    }
+
+    static String credentialErrorMessage(CharSequence message, String fallback) {
+        if (message == null || message.toString().isBlank()) {
+            return fallback;
+        }
+        return message.toString();
     }
 }
