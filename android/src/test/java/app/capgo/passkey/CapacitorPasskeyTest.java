@@ -38,6 +38,14 @@ public class CapacitorPasskeyTest {
     }
 
     @Test
+    public void errorMessageForGetException_usesEstablishedMessageForNoCredential() {
+        assertEquals(
+            "No matching passkey was found.",
+            CapacitorPasskey.errorMessageForGetException(new NoCredentialException("native credential message"))
+        );
+    }
+
+    @Test
     public void errorNameForGetException_mapsUnknownFailuresToUnknownError() {
         assertEquals("UnknownError", CapacitorPasskey.errorNameForGetException(new GetCredentialUnknownException("failed")));
     }

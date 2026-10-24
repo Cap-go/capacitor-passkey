@@ -230,15 +230,7 @@ public class CapacitorPasskeyPlugin extends Plugin {
 
     private void rejectGetException(PluginCall call, GetCredentialException exception) {
         String name = CapacitorPasskey.errorNameForGetException(exception);
-        String fallback;
-        if (exception instanceof GetCredentialCancellationException) {
-            fallback = "Passkey authentication was cancelled.";
-        } else if ("NotFoundError".equals(name)) {
-            fallback = "No matching passkey was found.";
-        } else {
-            fallback = "Passkey authentication failed.";
-        }
-        rejectDom(call, name, messageFor(exception, fallback), exception);
+        rejectDom(call, name, CapacitorPasskey.errorMessageForGetException(exception), exception);
     }
 
     private String messageFor(CreateCredentialException exception, String fallback) {

@@ -53,4 +53,21 @@ public class CapacitorPasskey {
 
         return "UnknownError";
     }
+
+    public static String errorMessageForGetException(GetCredentialException exception) {
+        String name = errorNameForGetException(exception);
+        String fallback;
+        if (exception instanceof GetCredentialCancellationException) {
+            fallback = "Passkey authentication was cancelled.";
+        } else if ("NotFoundError".equals(name)) {
+            fallback = "No matching passkey was found.";
+        } else {
+            fallback = "Passkey authentication failed.";
+        }
+        if ("NotFoundError".equals(name)) {
+            return fallback;
+        }
+        CharSequence message = exception.getErrorMessage();
+        return message != null ? message.toString() : fallback;
+    }
 }
